@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BookStore.Migrations
+namespace BookStoreExam.Migrations
 {
     [DbContext(typeof(BookStoreContext))]
     partial class BookStoreContextModelSnapshot : ModelSnapshot

@@ -3,51 +3,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BookStore.Migrations
+namespace BookStoreExam.Migrations
 {
     /// <inheritdoc />
-    public partial class yngi : Migration
+    public partial class Migrtions : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Author",
-                table: "Books");
-
-            migrationBuilder.RenameColumn(
-                name: "Name",
-                table: "Books",
-                newName: "Title");
-
-            migrationBuilder.AddColumn<int>(
-                name: "AuthorId",
-                table: "Books",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<int>(
-                name: "CategoryId",
-                table: "Books",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<int>(
-                name: "OrderId",
-                table: "Books",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "Price",
-                table: "Books",
-                type: "numeric",
-                nullable: false,
-                defaultValue: 0m);
-
             migrationBuilder.CreateTable(
                 name: "About",
                 columns: table => new
@@ -207,6 +170,46 @@ namespace BookStore.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Books",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    OrderId = table.Column<int>(type: "integer", nullable: false),
+                    AuthorId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Books", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Books_Author_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Author",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Books_Category_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Category",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Books_Order_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Order",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Adress_UserId",
+                table: "Adress",
+                column: "UserId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Books_AuthorId",
                 table: "Books",
@@ -221,11 +224,6 @@ namespace BookStore.Migrations
                 name: "IX_Books_OrderId",
                 table: "Books",
                 column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Adress_UserId",
-                table: "Adress",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Category_OrderDetailsId",
@@ -246,52 +244,22 @@ namespace BookStore.Migrations
                 name: "IX_OrderD_UserId",
                 table: "OrderD",
                 column: "UserId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Books_Author_AuthorId",
-                table: "Books",
-                column: "AuthorId",
-                principalTable: "Author",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Books_Category_CategoryId",
-                table: "Books",
-                column: "CategoryId",
-                principalTable: "Category",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Books_Order_OrderId",
-                table: "Books",
-                column: "OrderId",
-                principalTable: "Order",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Books_Author_AuthorId",
-                table: "Books");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Books_Category_CategoryId",
-                table: "Books");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Books_Order_OrderId",
-                table: "Books");
-
             migrationBuilder.DropTable(
                 name: "About");
 
             migrationBuilder.DropTable(
                 name: "Adress");
+
+            migrationBuilder.DropTable(
+                name: "Books");
+
+            migrationBuilder.DropTable(
+                name: "Report");
 
             migrationBuilder.DropTable(
                 name: "Author");
@@ -303,9 +271,6 @@ namespace BookStore.Migrations
                 name: "Order");
 
             migrationBuilder.DropTable(
-                name: "Report");
-
-            migrationBuilder.DropTable(
                 name: "OrderD");
 
             migrationBuilder.DropTable(
@@ -313,46 +278,6 @@ namespace BookStore.Migrations
 
             migrationBuilder.DropTable(
                 name: "User");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Books_AuthorId",
-                table: "Books");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Books_CategoryId",
-                table: "Books");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Books_OrderId",
-                table: "Books");
-
-            migrationBuilder.DropColumn(
-                name: "AuthorId",
-                table: "Books");
-
-            migrationBuilder.DropColumn(
-                name: "CategoryId",
-                table: "Books");
-
-            migrationBuilder.DropColumn(
-                name: "OrderId",
-                table: "Books");
-
-            migrationBuilder.DropColumn(
-                name: "Price",
-                table: "Books");
-
-            migrationBuilder.RenameColumn(
-                name: "Title",
-                table: "Books",
-                newName: "Name");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Author",
-                table: "Books",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
         }
     }
 }

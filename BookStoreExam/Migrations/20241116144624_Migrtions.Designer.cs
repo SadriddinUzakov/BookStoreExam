@@ -7,11 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BookStore.Migrations
+namespace BookStoreExam.Migrations
 {
     [DbContext(typeof(BookStoreContext))]
-    [Migration("20241021164606_yngi")]
-    partial class yngi
+    [Migration("20241116144624_Migrtions")]
+    partial class Migrtions
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
