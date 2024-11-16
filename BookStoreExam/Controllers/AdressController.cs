@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookStore.Controller
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AdressController : ControllerBase
     {
         private readonly BookStoreContext _context;
@@ -16,31 +16,35 @@ namespace BookStore.Controller
 
 
         [HttpGet("{Id}")]
-        public Adress GetAdress(int Id)
+        public ActionResult<About>GetAbout(int Id)
         {
             var adres = _context.Adress.FirstOrDefault(adres => adres.Id == Id);
-            return adres;
+            if (adres == null)
+            {
+                return NotFound();
+            }
+            else
+                return Ok(adres);
         }
 
 
         [HttpGet]
-        public List<Adress> GetAdress()
+        public ActionResult<IEnumerable<Adress>> GetAdresses()
         {
-            var adres = _context.Adress.ToList();
-            return adres;
+            return _context.Adress.ToList();
         }
 
 
         [HttpPost]
-        public int PostAdress(Adress adres)
+        public ActionResult<Adress> CreateAdres(Adress adress)
         {
-            _context.Adress.Add(adres);
+            _context.Adress.Add(adress);
             _context.SaveChanges();
-            return adres.Id;
+            return CreatedAtAction(nameof(GetAdresses), new { id = adress.Id }, adress);
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateAdress(int id, Adress adres)
+        public IActionResult UpdateAdress(int id, Adress adres)
         {
             var existingA = _context.Adress.FirstOrDefault(a => a.Id == id);
             if (existingA == null)
@@ -52,36 +56,22 @@ namespace BookStore.Controller
             existingA.City = adres.City;
             existingA.Street = adres.Street;
 
-
-
             _context.SaveChanges();
             return NoContent();
         }
 
-        [HttpDelete]
-        public void DeleteAdress([FromBody] Adress adres)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteAdress(int id)
         {
-            var updA = _context.Adress.FirstOrDefault(a => a.Region == adres.Region);
-
-            if (updA != null)
+            var adres = _context.Adress.FirstOrDefault(a => a.Id == id);
+            if (adres == null)
             {
-                _context.Adress.Remove(updA);
-                _context.SaveChanges();
+                return NotFound();
             }
-            var updAS = _context.Adress.FirstOrDefault(a => a.Street == adres.Street);
 
-            if (updAS != null)
-            {
-                _context.Adress.Remove(updAS);
-                _context.SaveChanges();
-            }
-            var updAC = _context.Adress.FirstOrDefault(a => a.City == adres.City);
-
-            if (updAC != null)
-            {
-                _context.Adress.Remove(updAC);
-                _context.SaveChanges();
-            }
+            _context.Adress.Remove(adres);
+            _context.SaveChanges();
+            return NoContent();
         }
 
     }

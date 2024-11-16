@@ -1,11 +1,12 @@
 ﻿using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BookStore.Controllers
 {
-
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class CategoryController : ControllerBase
     {
         private readonly BookStoreContext _context;
@@ -15,51 +16,71 @@ namespace BookStore.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        public ActionResult<IEnumerable<Category>> GetCategories()
+        {
+            var categories = _context.Category.ToList();
+            return Ok(categories);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Category> GetCategory(int id)
+        {
+            var category = _context.Category.FirstOrDefault(c => c.Id == id);
+            if (category == null)
+            {
+                return NotFound($"Category with Id {id} not found.");
+            }
+
+            return Ok(category);
+        }
 
         [HttpPost]
-        public int PostCategory(Category category)
+        public ActionResult<int> PostCategory(Category category)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _context.Category.Add(category);
             _context.SaveChanges();
-            return category.Id;
+
+            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category.Id);
         }
 
-
-        [HttpGet]
-        public List<Category> GetCategory()
+        [HttpPut("{id}")]
+        public ActionResult UpdateCategory(int id, Category category)
         {
-            return _context.Category.ToList();
-        }
-
-
-
-        [HttpPut]
-        public void UpdateCategory(Category category)
-        {
-            var existingCategory = _context.Category.FirstOrDefault(c => c.Id == category.Id);
-
-            if (existingCategory != null)
+            if (id != category.Id)
             {
-                existingCategory.Name = category.Name;
-
-                _context.SaveChanges();
+                return BadRequest("Category ID mismatch.");
             }
-        }
 
-
-        [HttpDelete]
-        public void DeleteCategory(int id)
-        {
-            var updCategory = _context.Category.FirstOrDefault(category => category.Id == id);
-
-            if (updCategory != null)
+            var existingCategory = _context.Category.FirstOrDefault(c => c.Id == id);
+            if (existingCategory == null)
             {
-                _context.Category.Remove(updCategory);
-                _context.SaveChanges();
+                return NotFound($"Category with Id {id} not found.");
             }
+
+            existingCategory.Name = category.Name;
+
+            _context.SaveChanges();
+            return NoContent();
         }
 
+        [HttpDelete("{id}")]
+        public ActionResult DeleteCategory(int id)
+        {
+            var category = _context.Category.FirstOrDefault(c => c.Id == id);
+            if (category == null)
+            {
+                return NotFound($"Category with Id {id} not found.");
+            }
+
+            _context.Category.Remove(category);
+            _context.SaveChanges();
+            return NoContent();
+        }
     }
-
-
 }

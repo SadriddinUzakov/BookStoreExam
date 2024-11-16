@@ -12,6 +12,8 @@ public class BookStoreContext : DbContext
     public DbSet<OrderDetails> OrderD { get; set; }
     public DbSet<Report> Report { get; set; }
     public DbSet<User> User { get; set; }
+    public DbSet<Employees>Employees { get; set; }
+    public DbSet<OrderDetails> OrderDetails { get; set; }
 
     public BookStoreContext(DbContextOptions<BookStoreContext> options)
         : base(options)

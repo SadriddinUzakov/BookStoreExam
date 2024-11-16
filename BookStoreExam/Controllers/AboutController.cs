@@ -1,10 +1,10 @@
 ﻿using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BookStore.Controller
+namespace BookStore.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AboutController : ControllerBase
     {
         private readonly BookStoreContext _context;
@@ -14,33 +14,33 @@ namespace BookStore.Controller
             _context = context;
         }
 
-
-        [HttpGet("{Id}")]
-        public About Getabout(int Id)
+        [HttpGet("{id}")]
+        public ActionResult<About> GetAbout(int id)
         {
-            var about = _context.About.FirstOrDefault(about => about.Id == Id);
+            var about = _context.About.FirstOrDefault(a => a.Id == id);
+            if (about == null)
+            {
+                return NotFound();
+            }
             return about;
         }
-
 
         [HttpGet]
-        public List<About> GetAbout()
+        public ActionResult<IEnumerable<About>> GetAllAbout()
         {
-            var about = _context.About.ToList();
-            return about;
+            return _context.About.ToList();
         }
 
-
         [HttpPost]
-        public int PostAbout(About about)
+        public ActionResult<About> CreateAbout(About about)
         {
             _context.About.Add(about);
             _context.SaveChanges();
-            return about.Id;
+            return CreatedAtAction(nameof(GetAbout), new { id = about.Id }, about);
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateAbout(int id, About about)
+        public IActionResult UpdateAbout(int id, About about)
         {
             var existingAbout = _context.About.FirstOrDefault(a => a.Id == id);
             if (existingAbout == null)
@@ -49,24 +49,24 @@ namespace BookStore.Controller
             }
 
             existingAbout.Name = about.Name;
-
-
-
             _context.SaveChanges();
+
             return NoContent();
         }
 
-        [HttpDelete]
-        public void DeleteAbout([FromBody] About about)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteAbout(int id)
         {
-            var updA = _context.About.FirstOrDefault(a => a.Name == about.Name);
-
-            if (updA != null)
+            var about = _context.About.FirstOrDefault(a => a.Id == id);
+            if (about == null)
             {
-                _context.About.Remove(updA);
-                _context.SaveChanges();
+                return NotFound();
             }
-        }
 
+            _context.About.Remove(about);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
     }
 }

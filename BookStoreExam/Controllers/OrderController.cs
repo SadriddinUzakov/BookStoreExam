@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BookStore.Controller
+namespace BookStore.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
         private readonly BookStoreContext _context;
@@ -16,60 +16,70 @@ namespace BookStore.Controller
             _context = context;
         }
 
-
-        [HttpGet("{Id}")]
-        public Order GetOrder(int Id)
-        {
-            var order = _context.Order.FirstOrDefault(o => o.Id == Id);
-            return order;
-        }
-
-
         [HttpGet]
-        public List<Order> GetOrder()
+        public ActionResult<IEnumerable<Order>> GetOrders()
         {
-            var order = _context.Order.ToList();
-            return order;
+            var orders = _context.Order.ToList();
+            return Ok(orders);
         }
 
+        [HttpGet("{id}")]
+        public ActionResult<Order> GetOrder(int id)
+        {
+            var order = _context.Order.FirstOrDefault(o => o.Id == id);
+            if (order == null)
+            {
+                return NotFound($"Order with Id {id} not found.");
+            }
+            return Ok(order);
+        }
 
         [HttpPost]
-        public int PostOrder(Order order)
+        public ActionResult<int> PostOrder(Order order)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _context.Order.Add(order);
             _context.SaveChanges();
-            return order.Id;
+
+            return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order.Id);
         }
 
         [HttpPut("{id}")]
         public ActionResult UpdateOrder(int id, Order order)
         {
-            var existingA = _context.Order.FirstOrDefault(a => a.Id == id);
-            if (existingA == null)
+            if (id != order.Id)
             {
-                return NotFound();
+                return BadRequest("Order ID mismatch.");
             }
 
-            existingA.Coment = order.Coment;
-           
+            var existingOrder = _context.Order.FirstOrDefault(o => o.Id == id);
+            if (existingOrder == null)
+            {
+                return NotFound($"Order with Id {id} not found.");
+            }
 
+            existingOrder.Comment = order.Comment;
 
             _context.SaveChanges();
             return NoContent();
         }
 
-        [HttpDelete]
-        public void DeleteOreder([FromBody] Order order)
+        [HttpDelete("{id}")]
+        public ActionResult DeleteOrder(int id)
         {
-            var updA = _context.Order.FirstOrDefault(a => a.Coment == order.Coment);
-
-            if (updA != null)
+            var order = _context.Order.FirstOrDefault(o => o.Id == id);
+            if (order == null)
             {
-                _context.Order.Remove(updA);
-                _context.SaveChanges();
+                return NotFound($"Order with Id {id} not found.");
             }
-           
-        }
 
+            _context.Order.Remove(order);
+            _context.SaveChanges();
+            return NoContent();
+        }
     }
 }

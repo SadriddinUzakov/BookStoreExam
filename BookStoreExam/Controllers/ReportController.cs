@@ -1,10 +1,12 @@
 ﻿using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace BookStore.Controller
+namespace BookStore.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ReportController : ControllerBase
     {
         private readonly BookStoreContext _context;
@@ -14,75 +16,72 @@ namespace BookStore.Controller
             _context = context;
         }
 
-
-        [HttpGet("{Id}")]
-        public Report GetReport(int Id)
-        {
-            var rep = _context.Report.FirstOrDefault(r => r.Id == Id);
-            return rep;
-        }
-
-
         [HttpGet]
-        public List<Report> GetReport()
+        public ActionResult<IEnumerable<Report>> GetReports()
         {
-            var rep = _context.Report.ToList();
-            return rep;
+            var reports = _context.Report.ToList();
+            return Ok(reports);
         }
 
+        [HttpGet("{id}")]
+        public ActionResult<Report> GetReport(int id)
+        {
+            var report = _context.Report.FirstOrDefault(r => r.Id == id);
+            if (report == null)
+            {
+                return NotFound($"Report with Id {id} not found.");
+            }
+            return Ok(report);
+        }
 
         [HttpPost]
-        public int PostReport(Report rep)
+        public ActionResult<int> PostReport(Report report)
         {
-            _context.Report.Add(rep);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Report.Add(report);
             _context.SaveChanges();
-            return rep.Id;
+
+            return CreatedAtAction(nameof(GetReport), new { id = report.Id }, report.Id);
         }
 
         [HttpPut("{id}")]
-        public ActionResult Updatereport(int id, Report rep)
+        public ActionResult UpdateReport(int id, Report report)
         {
-            var existingR = _context.Report.FirstOrDefault(r => r.Id == id);
-            if (existingR == null)
+            if (id != report.Id)
             {
-                return NotFound();
+                return BadRequest("Report ID mismatch.");
             }
 
-            existingR.Name = rep.Name;
-            existingR.Description = rep.Description;
-            existingR.Count = rep.Count;
+            var existingReport = _context.Report.FirstOrDefault(r => r.Id == id);
+            if (existingReport == null)
+            {
+                return NotFound($"Report with Id {id} not found.");
+            }
 
+            existingReport.Name = report.Name;
+            existingReport.Description = report.Description;
+            existingReport.Count = report.Count;
 
             _context.SaveChanges();
             return NoContent();
         }
 
-        [HttpDelete]
-        public void DeleteReport([FromBody] Report rep)
+        [HttpDelete("{id}")]
+        public ActionResult DeleteReport(int id)
         {
-            var updR = _context.Report.FirstOrDefault(a => a.Name == rep.Name);
-
-            if (updR != null)
+            var report = _context.Report.FirstOrDefault(r => r.Id == id);
+            if (report == null)
             {
-                _context.Report.Remove(updR);
-                _context.SaveChanges();
-            }
-            var updRd = _context.Report.FirstOrDefault(a => a.Description == rep.Description);
-
-            if (updRd != null)
-            {
-                _context.Report.Remove(updRd);
-                _context.SaveChanges();
-            }
-            var updRc = _context.Report.FirstOrDefault(a => a.Count == rep.Count);
-
-            if (updRc != null)
-            {
-                _context.Report.Remove(updRc);
-                _context.SaveChanges();
+                return NotFound($"Report with Id {id} not found.");
             }
 
+            _context.Report.Remove(report);
+            _context.SaveChanges();
+            return NoContent();
         }
-
     }
 }

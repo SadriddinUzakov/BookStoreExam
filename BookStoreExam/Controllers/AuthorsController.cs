@@ -1,10 +1,12 @@
 ﻿using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace BookStore.Controller
+namespace BookStore.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AuthorsController : ControllerBase
     {
         private readonly BookStoreContext _context;
@@ -14,61 +16,71 @@ namespace BookStore.Controller
             _context = context;
         }
 
-
-        [HttpGet("{Id}")]
-        public Author GetAuthors(int Id)
-        {
-            var avtor = _context.Author.FirstOrDefault(a => a.Id == Id);
-            return avtor;
-        }
-
-
         [HttpGet]
-        public List<Author> GetAuthor()
+        public ActionResult<IEnumerable<Author>> GetAllAuthors()
         {
-            var avtor = _context.Author.ToList();
-            return avtor;
+            var authors = _context.Author.ToList();
+            return Ok(authors);
         }
 
+        [HttpGet("{id}")]
+        public ActionResult<Author> GetAuthor(int id)
+        {
+            var author = _context.Author.FirstOrDefault(a => a.Id == id);
+            if (author == null)
+            {
+                return NotFound($"Author with Id {id} not found.");
+            }
+            return Ok(author);
+        }
 
         [HttpPost]
-        public int PostAuthor(Author avtor)
+        public ActionResult<int> PostAuthor(Author author)
         {
-            _context.Author.Add(avtor);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Author.Add(author);
             _context.SaveChanges();
-            return avtor.Id;
+
+            return CreatedAtAction(nameof(GetAuthor), new { id = author.Id }, author.Id);
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateAuthor(int id, Author avtor)
+        public ActionResult UpdateAuthor(int id, Author author)
         {
-            var existingA = _context.Author.FirstOrDefault(a => a.Id == id);
-            if (existingA == null)
+            if (id != author.Id)
             {
-                return NotFound();
+                return BadRequest("Author ID mismatch.");
             }
 
-            existingA.Name = avtor.Name;
+            var existingAuthor = _context.Author.FirstOrDefault(a => a.Id == id);
+            if (existingAuthor == null)
+            {
+                return NotFound($"Author with Id {id} not found.");
+            }
 
-
-
+            existingAuthor.Name = author.Name;
 
             _context.SaveChanges();
             return NoContent();
         }
 
-        [HttpDelete]
-        public void DeleteAuthor([FromBody] Author avtor)
+        // Delete an author by ID
+        [HttpDelete("{id}")]
+        public ActionResult DeleteAuthor(int id)
         {
-            var updA = _context.Author.FirstOrDefault(a => a.Name == avtor.Name);
-
-            if (updA != null)
+            var author = _context.Author.FirstOrDefault(a => a.Id == id);
+            if (author == null)
             {
-                _context.Author.Remove(updA);
-                _context.SaveChanges();
+                return NotFound($"Author with Id {id} not found.");
             }
 
+            _context.Author.Remove(author);
+            _context.SaveChanges();
+            return NoContent();
         }
-
     }
 }

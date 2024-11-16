@@ -1,72 +1,85 @@
 ﻿using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace BookStore.Controller
+namespace BookStore.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class OrderDetailsController : ControllerBase
     {
         private readonly BookStoreContext _context;
+
         public OrderDetailsController(BookStoreContext context)
         {
             _context = context;
         }
 
-
-        [HttpGet("{Id}")]
-        public OrderDetails GetOrderD(int Id)
-        {
-            var order = _context.OrderD.FirstOrDefault(o => o.Id == Id);
-            return order;
-        }
-
-
         [HttpGet]
-        public List<OrderDetails> GetOrderD()
+        public ActionResult<IEnumerable<OrderDetails>> GetOrderDetails()
         {
-            var order = _context.OrderD.ToList();
-            return order;
+            var orderDetails = _context.OrderDetails.ToList();
+            return Ok(orderDetails);
         }
 
+        [HttpGet("{id}")]
+        public ActionResult<OrderDetails> GetOrderDetail(int id)
+        {
+            var orderDetail = _context.OrderDetails.FirstOrDefault(od => od.Id == id);
+            if (orderDetail == null)
+            {
+                return NotFound($"OrderDetail with Id {id} not found.");
+            }
+            return Ok(orderDetail);
+        }
 
         [HttpPost]
-        public int PostOrderD(OrderDetails order)
+        public ActionResult<int> PostOrderDetail(OrderDetails orderDetail)
         {
-            _context.OrderD.Add(order);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.OrderDetails.Add(orderDetail);
             _context.SaveChanges();
-            return order.Id;
+
+            return CreatedAtAction(nameof(GetOrderDetail), new { id = orderDetail.Id }, orderDetail.Id);
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateOrderD(int id, OrderDetails order)
+        public ActionResult UpdateOrderDetail(int id, OrderDetails orderDetail)
         {
-            var existingA = _context.OrderD.FirstOrDefault(a => a.Id == id);
-            if (existingA == null)
+            if (id != orderDetail.Id)
             {
-                return NotFound();
+                return BadRequest("OrderDetail ID mismatch.");
             }
 
-            existingA.Bookcount = order.Bookcount;
+            var existingOrderDetail = _context.OrderDetails.FirstOrDefault(od => od.Id == id);
+            if (existingOrderDetail == null)
+            {
+                return NotFound($"OrderDetail with Id {id} not found.");
+            }
+
+            existingOrderDetail.Bookcount = orderDetail.Bookcount;
 
             _context.SaveChanges();
             return NoContent();
         }
 
-
-
-        [HttpDelete]
-        public void DeleteOreder([FromBody] OrderDetails order)
+        [HttpDelete("{id}")]
+        public ActionResult DeleteOrderDetail(int id)
         {
-            var updA = _context.OrderD.FirstOrDefault(a => a.Bookcount == order.Bookcount);
-
-            if (updA != null)
+            var orderDetail = _context.OrderDetails.FirstOrDefault(od => od.Id == id);
+            if (orderDetail == null)
             {
-                _context.OrderD.Remove(updA);
-                _context.SaveChanges();
+                return NotFound($"OrderDetail with Id {id} not found.");
             }
 
+            _context.OrderDetails.Remove(orderDetail);
+            _context.SaveChanges();
+            return NoContent();
         }
-
     }
 }
